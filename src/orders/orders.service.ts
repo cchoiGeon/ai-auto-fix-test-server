@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderDocument } from './order.schema';
@@ -12,6 +12,9 @@ export class OrdersService {
   // [#1] 존재하지 않는 주문 조회 후 null 체크 없이 구조분해
   async pay(orderId: string, requestAmount: number) {
     const order = await this.orderModel.findById(orderId).lean();
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} not found`);
+    }
     const { _id, amount, userEmail } = order;
     if (amount !== requestAmount) {
       return { paid: false, reason: 'amount mismatch' };
